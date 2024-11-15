@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ethers } from 'ethers';
 
 declare global {
@@ -19,7 +19,7 @@ export const useWallet = () => {
     account: null,
     chainId: null,
     balance: null,
-    isConnecting: false,
+    isConnecting: false
   });
 
   const updateBalance = useCallback(async (address: string) => {
@@ -35,7 +35,7 @@ export const useWallet = () => {
 
   const connect = async () => {
     if (!window.ethereum) {
-      throw new Error('Please install MetaMask!');
+      throw new Error('Por favor instala MetaMask!');
     }
 
     try {
