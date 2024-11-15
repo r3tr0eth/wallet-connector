@@ -10,11 +10,13 @@ import {
     Td, 
     Spinner, 
     Link,
-    useColorModeValue,
-    Badge
+    Badge,
+    Tooltip,
+    Icon
   } from '@chakra-ui/react';
   import { ExternalLinkIcon } from '@chakra-ui/icons';
   import { motion } from 'framer-motion';
+  import { NetworkType, NETWORKS } from '../types/networks';
   
   const MotionBox = motion(Box);
   
@@ -24,25 +26,60 @@ import {
     to: string;
     value: string;
     timestamp: number;
+    network: NetworkType;
   }
   
   interface TransactionHistoryProps {
     transactions: Transaction[];
     isLoading: boolean;
-    chainId?: number | null;
   }
   
-  export const TransactionHistory = ({ transactions, isLoading, chainId }: TransactionHistoryProps) => {
-    const getExplorerUrl = (hash: string) => {
-      const baseUrl = chainId === 1 ? 'https://etherscan.io' :
-                     chainId === 5 ? 'https://goerli.etherscan.io' :
-                     chainId === 11155111 ? 'https://sepolia.etherscan.io' :
-                     'https://etherscan.io';
-      return `${baseUrl}/tx/${hash}`;
+  export const TransactionHistory = ({ transactions, isLoading }: TransactionHistoryProps) => {
+    const getExplorerUrl = (hash: string, network: NetworkType) => {
+      const baseUrl = NETWORKS[network].explorerUrl;
+      switch (network) {
+        case NetworkType.ETHEREUM:
+        case NetworkType.POLYGON:
+          return `${baseUrl}/tx/${hash}`;
+        case NetworkType.SOLANA:
+          return `${baseUrl}/tx/${hash}`;
+        default:
+          return '';
+      }
     };
   
     const formatAddress = (address: string) => {
       return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    };
+  
+    const getNetworkBadgeProps = (network: NetworkType) => {
+      switch (network) {
+        case NetworkType.ETHEREUM:
+          return {
+            bg: 'blue.500',
+            color: 'white',
+          };
+        case NetworkType.POLYGON:
+          return {
+            bg: 'purple.500',
+            color: 'white',
+          };
+        case NetworkType.SOLANA:
+          return {
+            bg: 'green.500',
+            color: 'white',
+          };
+        default:
+          return {
+            bg: 'gray.500',
+            color: 'white',
+          };
+      }
+    };
+  
+    const formatValue = (value: string, network: NetworkType) => {
+      const symbol = NETWORKS[network].symbol;
+      return `${parseFloat(value).toFixed(4)} ${symbol}`;
     };
   
     if (isLoading) {
@@ -96,6 +133,7 @@ import {
         <Table variant="unstyled" size="md">
           <Thead>
             <Tr>
+              <Th color="whiteAlpha.600">Network</Th>
               <Th color="whiteAlpha.600">Time</Th>
               <Th color="whiteAlpha.600">From</Th>
               <Th color="whiteAlpha.600">To</Th>
@@ -113,35 +151,57 @@ import {
                 }}
               >
                 <Td>
-                  <Text color="whiteAlpha.900" fontSize="sm">
-                    {new Date(tx.timestamp * 1000).toLocaleString()}
-                  </Text>
-                </Td>
-                <Td>
                   <Badge
+                    {...getNetworkBadgeProps(tx.network)}
+                    borderRadius="md"
                     px={2}
                     py={1}
-                    borderRadius="md"
-                    bg="whiteAlpha.200"
-                    color="white"
-                    fontFamily="mono"
-                    fontSize="sm"
                   >
-                    {formatAddress(tx.from)}
+                    {NETWORKS[tx.network].name}
                   </Badge>
                 </Td>
                 <Td>
-                  <Badge
-                    px={2}
-                    py={1}
-                    borderRadius="md"
-                    bg="whiteAlpha.200"
-                    color="white"
-                    fontFamily="mono"
-                    fontSize="sm"
+                  <Tooltip 
+                    label={new Date(tx.timestamp * 1000).toLocaleString()} 
+                    placement="top"
                   >
-                    {formatAddress(tx.to)}
-                  </Badge>
+                    <Text color="whiteAlpha.900" fontSize="sm">
+                      {new Date(tx.timestamp * 1000).toLocaleString(undefined, {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </Text>
+                  </Tooltip>
+                </Td>
+                <Td>
+                  <Tooltip label={tx.from} placement="top">
+                    <Badge
+                      px={2}
+                      py={1}
+                      borderRadius="md"
+                      bg="whiteAlpha.200"
+                      color="white"
+                      fontFamily="mono"
+                      fontSize="sm"
+                    >
+                      {formatAddress(tx.from)}
+                    </Badge>
+                  </Tooltip>
+                </Td>
+                <Td>
+                  <Tooltip label={tx.to} placement="top">
+                    <Badge
+                      px={2}
+                      py={1}
+                      borderRadius="md"
+                      bg="whiteAlpha.200"
+                      color="white"
+                      fontFamily="mono"
+                      fontSize="sm"
+                    >
+                      {formatAddress(tx.to)}
+                    </Badge>
+                  </Tooltip>
                 </Td>
                 <Td isNumeric>
                   <Text
@@ -149,12 +209,12 @@ import {
                     bgClip="text"
                     fontWeight="bold"
                   >
-                    {parseFloat(tx.value).toFixed(4)} ETH
+                    {formatValue(tx.value, tx.network)}
                   </Text>
                 </Td>
                 <Td>
                   <Link 
-                    href={getExplorerUrl(tx.hash)} 
+                    href={getExplorerUrl(tx.hash, tx.network)} 
                     isExternal
                     display="flex"
                     alignItems="center"

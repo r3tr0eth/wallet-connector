@@ -245,7 +245,6 @@ import {
                     <TransactionHistory 
                       transactions={transactions} 
                       isLoading={isLoadingTxs}
-                      chainId={typeof chainId === 'string' ? parseInt(chainId, 16) : chainId}
                     />
                   </Box>
                 </VStack>
