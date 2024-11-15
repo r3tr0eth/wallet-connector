@@ -1,15 +1,24 @@
-import { ChakraProvider, Container, VStack, Heading } from '@chakra-ui/react'
-import { WalletConnect } from './components/WalletConnect'
+import { ChakraProvider, Container } from '@chakra-ui/react';
+import { theme } from './theme';
+import { WalletConnect } from './components/WalletConnect';
+import { AnimatedBackground } from './components/AnimatedBackground';
 
-export default function App() {
+function App() {
   return (
-    <ChakraProvider>
-      <Container maxW="container.md" py={10}>
-        <VStack spacing={6}>
-          <Heading>Web3 Wallet Connector</Heading>
-          <WalletConnect />
-        </VStack>
+    <ChakraProvider theme={theme}>
+      <AnimatedBackground />
+      <Container 
+        maxW="container.md" 
+        py={10}
+        display="flex"
+        minH="100vh"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <WalletConnect />
       </Container>
     </ChakraProvider>
-  )
+  );
 }
+
+export default App;
